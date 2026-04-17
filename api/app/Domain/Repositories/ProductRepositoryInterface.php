@@ -10,9 +10,9 @@ interface ProductRepositoryInterface
 
     public function findByUuid(string $uuid): ?ProductEntity;
 
-    public function create(ProductEntity $product, int $categoryId, array $tagIds): ProductEntity;
+    public function create(ProductEntity $product, string $categoryUuid, array $tagUuids): ProductEntity;
 
-    public function update(string $uuid, ProductEntity $product, ?int $categoryId, ?array $tagIds): ProductEntity;
+    public function update(string $uuid, ProductEntity $product, ?string $categoryUuid, ?array $tagUuids): ProductEntity;
 
     public function delete(string $uuid): void;
 }

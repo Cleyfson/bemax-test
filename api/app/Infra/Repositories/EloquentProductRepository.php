@@ -38,8 +38,11 @@ class EloquentProductRepository implements ProductRepositoryInterface
         return $model ? $this->toEntity($model) : null;
     }
 
-    public function create(ProductEntity $product, int $categoryId, array $tagIds): ProductEntity
+    public function create(ProductEntity $product, string $categoryUuid, array $tagUuids): ProductEntity
     {
+        $categoryId = \App\Models\Category::where('uuid', $categoryUuid)->value('id');
+        $tagIds = \App\Models\Tag::whereIn('uuid', $tagUuids)->pluck('id')->all();
+
         $model = Product::create([
             'name'        => $product->getName(),
             'slug'        => $product->getSlug(),
@@ -57,9 +60,17 @@ class EloquentProductRepository implements ProductRepositoryInterface
         return $this->toEntity($model);
     }
 
-    public function update(string $uuid, ProductEntity $product, ?int $categoryId, ?array $tagIds): ProductEntity
+    public function update(string $uuid, ProductEntity $product, ?string $categoryUuid, ?array $tagUuids): ProductEntity
     {
         $model = Product::where('uuid', $uuid)->firstOrFail();
+
+        $categoryId = $categoryUuid
+            ? \App\Models\Category::where('uuid', $categoryUuid)->value('id')
+            : null;
+
+        $tagIds = $tagUuids !== null
+            ? \App\Models\Tag::whereIn('uuid', $tagUuids)->pluck('id')->all()
+            : null;
 
         $model->update(array_filter([
             'name'        => $product->getName(),
