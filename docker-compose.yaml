@@ -1,0 +1,102 @@
+services:
+
+  app:
+    build:
+      context: ./api
+      dockerfile: ../docker/php/Dockerfile
+    container_name: bemax_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./api:/var/www/html
+    environment:
+      - PHP_OPCACHE_ENABLE=1
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - bemax_network
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: bemax_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./api:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - bemax_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: bemax_mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bemax
+      MYSQL_USER: bemax
+      MYSQL_PASSWORD: bemax
+    volumes:
+      - bemax_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bemax_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: bemax_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - bemax_redis_data:/data
+    networks:
+      - bemax_network
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: bemax_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - bemax_network
+
+  queue:
+    build:
+      context: ./api
+      dockerfile: ../docker/php/Dockerfile
+    container_name: bemax_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./api:/var/www/html
+    command: php artisan queue:work redis --tries=3 --timeout=30 --sleep=3
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - bemax_network
+
+networks:
+  bemax_network:
+    driver: bridge
+
+volumes:
+  bemax_mysql_data:
+  bemax_redis_data:
