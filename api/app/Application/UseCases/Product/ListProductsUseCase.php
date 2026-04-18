@@ -18,13 +18,22 @@ class ListProductsUseCase
         $cached = $this->cache->getList($page, $perPage, $search);
 
         if ($cached !== null) {
+            $cached['data'] = array_map(
+                fn(array $item) => ProductEntity::fromArray($item),
+                $cached['data']
+            );
+
             return $cached;
         }
 
         $result = $this->productRepository->findAll($page, $perPage, $search);
 
-        $ttl = config('cache.products_ttl', 3600);
-        $this->cache->putList($page, $perPage, $search, $result, $ttl);
+        $ttl        = config('cache.products_ttl', 3600);
+        $cacheable  = [
+            'data' => array_map(fn(ProductEntity $e) => $e->jsonSerialize(), $result['data']),
+            'meta' => $result['meta'],
+        ];
+        $this->cache->putList($page, $perPage, $search, $cacheable, $ttl);
 
         return $result;
     }
