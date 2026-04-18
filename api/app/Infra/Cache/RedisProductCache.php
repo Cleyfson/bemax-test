@@ -3,54 +3,46 @@
 namespace App\Infra\Cache;
 
 use App\Application\Contracts\ProductCacheInterface;
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Cache;
 
 class RedisProductCache implements ProductCacheInterface
 {
-    private const PREFIX_LIST = 'products:list:';
-    private const PREFIX_SHOW = 'products:show:';
+    private const TAG_LIST = 'products_list';
+    private const TAG_SHOW = 'products_show';
 
     public function getList(int $page, int $perPage, ?string $search): ?array
     {
-        $raw = Redis::get($this->listKey($page, $perPage, $search));
-
-        return $raw !== null ? json_decode($raw, true) : null;
+        return Cache::tags(self::TAG_LIST)->get($this->listKey($page, $perPage, $search));
     }
 
     public function putList(int $page, int $perPage, ?string $search, array $data, int $ttl): void
     {
-        Redis::setex($this->listKey($page, $perPage, $search), $ttl, json_encode($data));
+        Cache::tags(self::TAG_LIST)->put($this->listKey($page, $perPage, $search), $data, $ttl);
     }
 
     public function getByUuid(string $uuid): ?array
     {
-        $raw = Redis::get(self::PREFIX_SHOW . $uuid);
-
-        return $raw !== null ? json_decode($raw, true) : null;
+        return Cache::tags(self::TAG_SHOW)->get($uuid);
     }
 
     public function putByUuid(string $uuid, array $data, int $ttl): void
     {
-        Redis::setex(self::PREFIX_SHOW . $uuid, $ttl, json_encode($data));
+        Cache::tags(self::TAG_SHOW)->put($uuid, $data, $ttl);
     }
 
     public function invalidateAll(): void
     {
-        $keys = Redis::keys(self::PREFIX_LIST . '*');
-
-        if (!empty($keys)) {
-            Redis::del($keys);
-        }
+        Cache::tags(self::TAG_LIST)->flush();
     }
 
     public function invalidateByUuid(string $uuid): void
     {
-        Redis::del(self::PREFIX_SHOW . $uuid);
+        Cache::tags(self::TAG_SHOW)->forget($uuid);
         $this->invalidateAll();
     }
 
     private function listKey(int $page, int $perPage, ?string $search): string
     {
-        return self::PREFIX_LIST . $page . ':' . $perPage . ':' . md5($search ?? '');
+        return $page . ':' . $perPage . ':' . md5($search ?? '');
     }
 }
