@@ -16,6 +16,7 @@ class ProductFactory extends Factory
         $name = fake()->unique()->words(3, true);
 
         return [
+            'uuid'        => fake()->uuid(),
             'name'        => ucwords($name),
             'slug'        => Str::slug($name),
             'price'       => fake()->randomFloat(2, 1, 999),
