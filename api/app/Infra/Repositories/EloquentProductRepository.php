@@ -6,7 +6,9 @@ use App\Domain\Entities\CategoryEntity;
 use App\Domain\Entities\ProductEntity;
 use App\Domain\Entities\TagEntity;
 use App\Domain\Repositories\ProductRepositoryInterface;
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\Tag;
 
 class EloquentProductRepository implements ProductRepositoryInterface
 {
@@ -40,8 +42,8 @@ class EloquentProductRepository implements ProductRepositoryInterface
 
     public function create(ProductEntity $product, string $categoryUuid, array $tagUuids): ProductEntity
     {
-        $categoryId = \App\Models\Category::where('uuid', $categoryUuid)->value('id');
-        $tagIds = \App\Models\Tag::whereIn('uuid', $tagUuids)->pluck('id')->all();
+        $categoryId = Category::where('uuid', $categoryUuid)->value('id');
+        $tagIds = Tag::whereIn('uuid', $tagUuids)->pluck('id')->all();
 
         $model = Product::create([
             'name'        => $product->getName(),
@@ -65,11 +67,11 @@ class EloquentProductRepository implements ProductRepositoryInterface
         $model = Product::where('uuid', $uuid)->firstOrFail();
 
         $categoryId = $categoryUuid
-            ? \App\Models\Category::where('uuid', $categoryUuid)->value('id')
+            ? Category::where('uuid', $categoryUuid)->value('id')
             : null;
 
         $tagIds = $tagUuids !== null
-            ? \App\Models\Tag::whereIn('uuid', $tagUuids)->pluck('id')->all()
+            ? Tag::whereIn('uuid', $tagUuids)->pluck('id')->all()
             : null;
 
         $model->update(array_filter([
@@ -114,6 +116,8 @@ class EloquentProductRepository implements ProductRepositoryInterface
             'description' => $model->description,
             'category'    => $category,
             'tags'        => $tags,
+            'created_at'  => $model->created_at?->toIso8601String(),
+            'updated_at'  => $model->updated_at?->toIso8601String(),
         ]);
     }
 }

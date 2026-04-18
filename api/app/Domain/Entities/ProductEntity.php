@@ -15,6 +15,8 @@ class ProductEntity implements JsonSerializable
     private CategoryEntity $category;
     /** @var TagEntity[] */
     private array $tags;
+    private ?string $createdAt;
+    private ?string $updatedAt;
 
     public function __construct(
         string $uuid,
@@ -23,7 +25,9 @@ class ProductEntity implements JsonSerializable
         float $price,
         ?string $description,
         CategoryEntity $category,
-        array $tags = []
+        array $tags = [],
+        ?string $createdAt = null,
+        ?string $updatedAt = null,
     ) {
         $this->uuid = $uuid;
         $this->setName($name);
@@ -32,6 +36,8 @@ class ProductEntity implements JsonSerializable
         $this->description = $description;
         $this->category = $category;
         $this->tags = $tags;
+        $this->createdAt = $createdAt;
+        $this->updatedAt = $updatedAt;
     }
 
     public static function fromArray(array $data): self
@@ -52,7 +58,9 @@ class ProductEntity implements JsonSerializable
             (float) $data['price'],
             $data['description'] ?? null,
             $category,
-            $tags
+            $tags,
+            $data['created_at'] ?? null,
+            $data['updated_at'] ?? null,
         );
     }
 
@@ -135,6 +143,16 @@ class ProductEntity implements JsonSerializable
         $this->tags = $tags;
     }
 
+    public function getCreatedAt(): ?string
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): ?string
+    {
+        return $this->updatedAt;
+    }
+
     public function jsonSerialize(): array
     {
         return [
@@ -145,6 +163,8 @@ class ProductEntity implements JsonSerializable
             'description' => $this->description,
             'category'    => $this->category->jsonSerialize(),
             'tags'        => array_map(fn(TagEntity $t) => $t->jsonSerialize(), $this->tags),
+            'created_at'  => $this->createdAt,
+            'updated_at'  => $this->updatedAt,
         ];
     }
 }
