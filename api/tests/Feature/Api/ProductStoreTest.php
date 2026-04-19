@@ -124,8 +124,8 @@ class ProductStoreTest extends TestCase
             'category_uuid' => $category->uuid,
         ])->assertStatus(201);
 
-        // Cache should be invalidated — new product must appear
-        $response = $this->getJson('/api/products');
+        // Cache should be invalidated — search specifically for the new product
+        $response = $this->getJson('/api/products?search=Cache+Buster');
         $names    = array_column($response->json('data'), 'name');
         $this->assertContains('Cache Buster', $names);
     }

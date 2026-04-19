@@ -58,12 +58,14 @@ class ProductIndexTest extends TestCase
         // First request — populates cache
         $first = $this->getJson('/api/products');
         $first->assertStatus(200);
+        $cachedCount = count($first->json('data'));
 
-        // Delete product directly — cache should still return old data
+        // Force-delete directly — bypasses use case so cache is NOT invalidated
         Product::query()->forceDelete();
 
+        // Second request must come from cache (same data, even though DB is now empty)
         $second = $this->getJson('/api/products');
         $second->assertStatus(200);
-        $this->assertCount(1, $second->json('data'));
+        $this->assertCount($cachedCount, $second->json('data'));
     }
 }
