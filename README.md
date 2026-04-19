@@ -282,7 +282,7 @@ O domínio pode ser testado com `PHPUnit\Framework\TestCase` puro, sem bootstrap
 
 ### Application
 
-Orquestra objetos de domínio para cumprir os casos de uso. **Depende apenas do Domain**, nunca importa models Eloquent ou facades do Laravel diretamente.
+Orquestra objetos de domínio para cumprir os casos de uso. É aqui que as **regras de negócio são centralizadas**. Depende apenas do Domain e das interfaces, sem acoplamento direto a banco de dados, cache ou serviços externos.
 
 | Classe | Responsabilidade |
 |---|---|
@@ -299,7 +299,7 @@ Orquestra objetos de domínio para cumprir os casos de uso. **Depende apenas do 
 
 ### Infra
 
-Implementações concretas das interfaces definidas no Domain e Application. **É a única camada que conhece Laravel, Eloquent, Redis e Mail**.
+Implementações concretas das interfaces definidas no Domain e Application. É aqui que vivem as integrações com Eloquent, Redis e Mail, detalhes de infraestrutura que as camadas internas não precisam conhecer.
 
 | Classe | Implementa | Observações |
 |---|---|---|
