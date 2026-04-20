@@ -50,7 +50,13 @@ Isso inicia seis containers: `bemax_app`, `bemax_nginx`, `bemax_mysql`, `bemax_r
 docker compose exec app php artisan key:generate
 ```
 
-### 5. Execute as migrations e o seed
+### 5. Instale as dependências PHP
+
+```bash
+docker compose exec app composer install
+```
+
+### 6. Execute as migrations e o seed
 
 ```bash
 docker compose exec app php artisan migrate
@@ -59,7 +65,7 @@ docker compose exec app php artisan db:seed
 
 O seeder cria categorias, tags e 15 produtos com associações aleatórias.
 
-### 6. Verifique
+### 7. Verifique
 
 ```
 GET http://localhost:8080/api/products
